@@ -1,0 +1,13 @@
+services:
+  write-freely:
+    build: .
+    container_name: write-freely
+    environment:
+      TZ: America/New_York
+      PUID: 1000
+      PGID: 1000
+    ports:
+      - "70:70/tcp"
+      - "8080:8080/tcp"
+    volumes:
+      - /mnt/containers/write-freely:/mnt/config
