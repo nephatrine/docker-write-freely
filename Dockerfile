@@ -6,8 +6,10 @@ RUN git -C /root clone -b "$WRITEFREELY_VERSION" --single-branch --depth=1 https
 RUN echo "====== COMPILE WRITEFREELY ======" \
  && cd /root/writefreely \
  && go get -u github.com/jteeuwen/go-bindata/go-bindata \
- && make ./tmp/go-bindata && cp ./tmp/go-bindata /go/bin/ \
- && make -j4 build && cmd/writefreely/writefreely config generate
+ && make -j$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 )) ./tmp/go-bindata \
+ && cp ./tmp/go-bindata /go/bin/ \
+ && make -j$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 )) build \
+ && cmd/writefreely/writefreely config generate
 
 FROM nephatrine/nxbuilder:alpine AS builder2
 
@@ -18,7 +20,7 @@ ARG NODE_OPTIONS=--openssl-legacy-provider
 RUN echo "====== COMPILE WRITEFREELY ======" \
  && cd /root/writefreely \
  && sed -i 's/sudo //g' less/install-less.sh && less/install-less.sh \
- && make -j4 ui
+ && make -j$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 )) ui
 
 FROM nephatrine/alpine-s6:latest
 LABEL maintainer="Daniel Wolf <nephatrine@gmail.com>"
