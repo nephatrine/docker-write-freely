@@ -40,7 +40,7 @@ You will likely want to create an admin account after installation. You can do
 that by using the container's terminal to run the following command:
 
 ```bash
-writefreely -c /mnt/config/etc/writefreely/config.ini --create-admin [username]:[password]
+writefreely -c /mnt/config/etc/writefreely.ini --create-admin [username]:[password]
 ```
 
 This will create your initial admin user account.
@@ -50,7 +50,7 @@ This will create your initial admin user account.
 There are some important configuration files you need to be aware of and
 potentially customize.
 
-- `/mnt/config/etc/writefreely/config.ini`
+- `/mnt/config/etc/writefreely.ini`
 - `/mnt/config/www/writefreely/*`
 
 Modifications to these files will require a service restart to pull in the
