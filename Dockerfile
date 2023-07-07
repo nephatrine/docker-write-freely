@@ -32,8 +32,8 @@ ENV WRITEFREELY_VERSION=1302
 COPY --from=builder2 /root/writefreely/cmd/writefreely/writefreely /usr/bin/
 COPY --from=builder2 /root/writefreely/config.ini /etc/writefreely.ini.sample
 COPY --from=builder2 /root/writefreely/static/ /var/www/writefreely/static/
-COPY --from=builder2 /root/writefreely/pages/ /var/www/writefreely/default-pages/
-COPY --from=builder2 /root/writefreely/templates/ /var/www/writefreely/default-templates/
+COPY --from=builder2 /root/writefreely/pages/ /var/www/writefreely/pages/
+COPY --from=builder2 /root/writefreely/templates/ /var/www/writefreely/templates/
 COPY override /
 
 EXPOSE 70/tcp 8080/tcp

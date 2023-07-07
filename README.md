@@ -51,9 +51,7 @@ There are some important configuration files you need to be aware of and
 potentially customize.
 
 - `/mnt/config/etc/writefreely/config.ini`
-- `/mnt/config/www/writefreely/pages/*`
-- `/mnt/config/www/writefreely/static/*`
-- `/mnt/config/www/writefreely/templates/*`
+- `/mnt/config/www/writefreely/*`
 
 Modifications to these files will require a service restart to pull in the
 changes made.

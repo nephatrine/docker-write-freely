@@ -1,57 +1,83 @@
-#!/bin/bash
+#!/command/with-contenv /bin/sh
 
 export HOME=/mnt/config/home
 
-if [[ ! -d /mnt/config/www/writefreely/static ]]; then
-  /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/www/writefreely/static
-fi
-/command/s6-setuidgid guardian /bin/cp -Rn /var/www/writefreely/static/. /mnt/config/www/writefreely/static/
+cd /mnt/config/home || exit 1
 
-if [[ ! -d /mnt/config/www/writefreely/pages ]]; then
+# Configure Assets
+
+if [ ! -d /var/www/writefreely-live ]; then
+  /bin/mkdir -p /var/www/writefreely-live
+  /bin/chown guardian:users /var/www/writefreely-live
+fi
+if [ ! -d /mnt/config/www/writefreely/pages ]; then
   /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/www/writefreely/pages
 fi
-/bin/mkdir -p /var/www/writefreely/pages
-/bin/cp -R /var/www/writefreely/default-pages/. /var/www/writefreely/pages/
-/bin/cp -R /mnt/config/www/writefreely/pages/. /var/www/writefreely/pages/
-
-if [[ ! -d /mnt/config/www/writefreely/templates ]]; then
+if [ ! -d /mnt/config/www/writefreely/static ]; then
+  /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/www/writefreely/static
+fi
+if [ ! -d /mnt/config/www/writefreely/templates ]; then
   /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/www/writefreely/templates
 fi
-/bin/mkdir -p /var/www/writefreely/templates
-/bin/cp -R /var/www/writefreely/default-templates/. /var/www/writefreely/templates/
-/bin/cp -R /mnt/config/www/writefreely/templates/. /var/www/writefreely/templates/
-
-if [[ ! -f /mnt/config/etc/writefreely/config.ini ]]; then
-  if [[ ! -d /mnt/config/etc/writefreely ]]; then
-    /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/etc/writefreely
-  fi
-  /command/s6-setuidgid guardian /bin/cp /etc/writefreely.ini /mnt/config/etc/writefreely/config.ini
-fi
-/command/s6-setuidgid guardian /bin/cp /etc/writefreely.ini.sample /mnt/config/etc/writefreely/config.ini.blank
-
-cd /mnt/config/etc/writefreely/
-
-if [[ -f /mnt/config/etc/writefreely/config.ini && ! -f /mnt/config/data/keys/cookies_auth.aes256 ]]; then
-  if [[ ! -d /mnt/config/data/keys ]]; then
-    /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/data/keys
-  fi
-  /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely/config.ini --gen-keys
-fi
-
-if [[ -f /mnt/config/data/writefreely.db ]]; then
-  /command/s6-setuidgid guardian /bin/cp /mnt/config/data/writefreely.db /mnt/config/data/writefreely.db.bak
-fi
-if [[ -f /mnt/config/data/keys/cookies_auth.aes256 && ! -f /mnt/config/data/writefreely.db ]]; then
-  /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely/config.ini --init-db
-  if [[ -f /mnt/config/data/writefreely.db ]]; then
-    echo "${WRITEFREELY_VERSION}" | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/data/version
-  elif [[ -f /mnt/config/data/version ]]; then
-    rm /mnt/config/data/version
+if [ -d /var/www/writefreely-live ]; then
+  /command/s6-setuidgid guardian /bin/cp -R /var/www/writefreely/. /var/www/writefreely-live/
+  if [ -d /mnt/config/www/writefreely ]; then
+    /command/s6-setuidgid guardian /bin/cp -R /mnt/config/www/writefreely/. /var/www/writefreely-live/
   fi
 fi
 
-if [[ -f /mnt/config/data/writefreely.db ]]; then
-  /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely/config.ini
+# Create Config
+
+if [ ! -d /mnt/config/etc ]; then
+  /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/etc
+fi
+if [ -d /mnt/config/etc ]; then
+  if [ ! -f /mnt/config/etc/writefreely.ini ] && [ -f /mnt/config/etc/writefreely/config.ini ]; then
+    # TODO: Remove this at some point
+    /command/s6-setuidgid guardian /bin/mv /mnt/config/etc/writefreely/config.ini /mnt/config/etc/writefreely.ini
+	/command/s6-setuidgid guardian /bin/sed -i 's~/var/www/writefreely$~/var/www/writefreely-live~g' /mnt/config/etc/writefreely.ini
+	/command/s6-setuidgid guardian /bin/sed -i 's~/mnt/config/www/writefreely$~/var/www/writefreely-live~g' /mnt/config/etc/writefreely.ini
+  fi
+  if [ ! -f /mnt/config/etc/writefreely.ini ]; then
+    /command/s6-setuidgid guardian /bin/cp /etc/writefreely.ini /mnt/config/etc/writefreely.ini
+  fi
+  /command/s6-setuidgid guardian /bin/cp /etc/writefreely.ini.sample /mnt/config/etc/writefreely.ini.sample
+fi
+
+# Generate Keys
+
+if [ ! -d /mnt/config/data/keys ]; then
+  /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/data/keys
+fi
+if [ ! -f /mnt/config/data/keys/cookies_auth.aes256 ] && [ -d /mnt/config/data/keys ]; then
+  /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini --gen-keys
+fi
+
+# Poor Man's DB Backup
+
+if [ -f /mnt/config/data/writefreely.db ]; then
+  /usr/bin/find /mnt/config/home/ -maxdepth 1 -type f -name 'writefreely-*.db' -print0 | /usr/bin/xargs -r0 /bin/ls -t | /usr/bin/tail -n +3 | /usr/bin/tr '\n' '\0' | /usr/bin/xargs -r0 /bin/rm
+  /command/s6-setuidgid guardian /bin/cp -n /mnt/config/data/writefreely.db "/mnt/config/home/writefreely-$(/bin/date +%Y%M%d%H%M).db"
+fi
+
+# Generate Database
+
+if [ -f /mnt/config/data/keys/cookies_auth.aes256 ] && [ ! -f /mnt/config/data/writefreely.db ]; then
+  /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini --init-db
+  if [ -f /mnt/config/data/writefreely.db ]; then
+    # TODO: So we can manually do schema migration when new versions come out...
+    /bin/echo "${WRITEFREELY_VERSION}" | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/data/version
+  elif [ -f /mnt/config/data/version ]; then
+    /bin/rm /mnt/config/data/version
+  fi
+fi
+
+# Start Daemon
+
+if [ -f /mnt/config/data/writefreely.db ]; then
+  exec /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini
 else
-  sleep 60
+  /bin/echo "** no DATABASE exists **"
+  /bin/sleep 300
+  exit 0
 fi
