@@ -7,14 +7,14 @@ jobs:
     runs-on: nephnet-amd64
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: https://gitea.com/actions/checkout@v3
       - name: Docker Build
         run: |
           docker build --pull -t code.nephatrine.net/nephnet/write-freely:${{ gitea.ref_name }}-gocache --target builder1 ${{ gitea.workspace }}
           docker build --pull -t code.nephatrine.net/nephnet/write-freely:${{ gitea.ref_name }}-jscache --target builder2 ${{ gitea.workspace }}
           docker build --pull -t code.nephatrine.net/nephnet/write-freely:${{ gitea.ref_name }}-amd64 ${{ gitea.workspace }}
       - name: Docker Login
-        uses: actions/docker-login@v2
+        uses: https://github.com/docker/login-action@v3
         with:
           registry: code.nephatrine.net
           username: ${{ gitea.actor }}
@@ -22,7 +22,7 @@ jobs:
       - name: Docker Push
         run: docker push code.nephatrine.net/nephnet/write-freely:${{ gitea.ref_name }}-amd64
       - name: Notify Discord
-        uses: actions/discord-status@v1
+        uses: https://github.com/sarisia/actions-status-discord@v1
         if: always()
         with:
           title: "Container Build (X86_64)"
@@ -32,14 +32,14 @@ jobs:
     runs-on: nephnet-arm64
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: https://gitea.com/actions/checkout@v3
       - name: Docker Build
         run: |
           docker build --pull -t code.nephatrine.net/nephnet/write-freely:${{ gitea.ref_name }}-gocache --target builder1 ${{ gitea.workspace }}
           docker build --pull -t code.nephatrine.net/nephnet/write-freely:${{ gitea.ref_name }}-jscache --target builder2 ${{ gitea.workspace }}
           docker build --pull -t code.nephatrine.net/nephnet/write-freely:${{ gitea.ref_name }}-arm64v8 ${{ gitea.workspace }}
       - name: Docker Login
-        uses: actions/docker-login@v2
+        uses: https://github.com/docker/login-action@v3
         with:
           registry: code.nephatrine.net
           username: ${{ gitea.actor }}
@@ -47,7 +47,7 @@ jobs:
       - name: Docker Push
         run: docker push code.nephatrine.net/nephnet/write-freely:${{ gitea.ref_name }}-arm64v8
       - name: Notify Discord
-        uses: actions/discord-status@v1
+        uses: https://github.com/sarisia/actions-status-discord@v1
         if: always()
         with:
           title: "Container Build (AARCH64)"
@@ -57,7 +57,7 @@ jobs:
     runs-on: nephnet
     steps:
       - name: Docker Login
-        uses: actions/docker-login@v2
+        uses: https://github.com/docker/login-action@v3
         with:
           registry: code.nephatrine.net
           username: ${{ gitea.actor }}
@@ -73,13 +73,13 @@ jobs:
     steps:
       - name: Check Base Image
         if: github.event_name != 'push'
-        uses: actions/docker-base-image-check@v1.2.1
+        uses: https://github.com/lucacome/docker-image-update-checker@v1
         id: checkbase
         with:
           base-image: nephatrine/alpine-s6:latest-amd64
           image: nephatrine/write-freely:latest-amd64
       - name: Docker Login
-        uses: actions/docker-login@v2
+        uses: https://github.com/docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
@@ -89,7 +89,7 @@ jobs:
           docker push nephatrine/write-freely:latest-amd64
       - name: Notify Discord
         if: github.event_name == 'push' || steps.checkbase.outputs.needs-updating == 'true'
-        uses: actions/discord-status@v1
+        uses: https://github.com/sarisia/actions-status-discord@v1
         with:
           title: "DockerHub: write-freely"
           description: "The container image was pushed to [DockerHub](https://hub.docker.com/repository/docker/nephatrine/write-freely/general).\nPull `nephatrine/write-freely:latest-amd64` for the newest image."
@@ -101,7 +101,7 @@ jobs:
     runs-on: nephnet-arm64
     steps:
       - name: Docker Login
-        uses: actions/docker-login@v2
+        uses: https://github.com/docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
@@ -114,7 +114,7 @@ jobs:
     runs-on: nephnet
     steps:
       - name: Docker Login
-        uses: actions/docker-login@v2
+        uses: https://github.com/docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
@@ -129,9 +129,9 @@ jobs:
           docker manifest push --purge nephatrine/write-freely:0
           docker manifest push --purge nephatrine/write-freely:latest
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: https://gitea.com/actions/checkout@v3
       - name: Docker Describe
-        uses: actions/dockerhub-update-description@v3
+        uses: https://github.com/peter-evans/dockerhub-description@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
