@@ -6,7 +6,7 @@
 
 This docker image contains a WriteFreely server to self-host your own blog(s).
 
-The `latest` tag points to version `0.13.2` and this is the only image actively
+The `latest` tag points to version `0.14.0` and this is the only image actively
 being updated. There are tags for older versions, but these may no longer be
 using the latest Alpine version and packages.
 

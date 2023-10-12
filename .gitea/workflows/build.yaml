@@ -120,12 +120,12 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
       - name: Docker Manifest
         run: |
-          docker manifest create nephatrine/write-freely:0.13.2 --amend nephatrine/write-freely:latest-amd64 --amend nephatrine/write-freely:latest-arm64v8
-          docker manifest create nephatrine/write-freely:0.13 --amend nephatrine/write-freely:latest-amd64 --amend nephatrine/write-freely:latest-arm64v8
+          docker manifest create nephatrine/write-freely:0.14.0 --amend nephatrine/write-freely:latest-amd64 --amend nephatrine/write-freely:latest-arm64v8
+          docker manifest create nephatrine/write-freely:0.14 --amend nephatrine/write-freely:latest-amd64 --amend nephatrine/write-freely:latest-arm64v8
           docker manifest create nephatrine/write-freely:0 --amend nephatrine/write-freely:latest-amd64 --amend nephatrine/write-freely:latest-arm64v8
           docker manifest create nephatrine/write-freely:latest --amend nephatrine/write-freely:latest-amd64 --amend nephatrine/write-freely:latest-arm64v8
-          docker manifest push --purge nephatrine/write-freely:0.13.2
-          docker manifest push --purge nephatrine/write-freely:0.13
+          docker manifest push --purge nephatrine/write-freely:0.14.0
+          docker manifest push --purge nephatrine/write-freely:0.14
           docker manifest push --purge nephatrine/write-freely:0
           docker manifest push --purge nephatrine/write-freely:latest
       - name: Checkout Repository
