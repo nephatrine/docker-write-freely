@@ -32,12 +32,6 @@ if [ ! -d /mnt/config/etc ]; then
   /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/etc
 fi
 if [ -d /mnt/config/etc ]; then
-  if [ ! -f /mnt/config/etc/writefreely.ini ] && [ -f /mnt/config/etc/writefreely/config.ini ]; then
-    # TODO: Remove this at some point
-    /command/s6-setuidgid guardian /bin/mv /mnt/config/etc/writefreely/config.ini /mnt/config/etc/writefreely.ini
-    /command/s6-setuidgid guardian /bin/sed -i 's~/var/www/writefreely$~/var/www/writefreely-live~g' /mnt/config/etc/writefreely.ini
-    /command/s6-setuidgid guardian /bin/sed -i 's~/mnt/config/www/writefreely$~/var/www/writefreely-live~g' /mnt/config/etc/writefreely.ini
-  fi
   if [ ! -f /mnt/config/etc/writefreely.ini ]; then
     /command/s6-setuidgid guardian /bin/cp /etc/writefreely.ini /mnt/config/etc/writefreely.ini
   fi
