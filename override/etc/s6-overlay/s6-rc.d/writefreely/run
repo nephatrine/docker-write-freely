@@ -65,10 +65,20 @@ fi
 if [ -f /mnt/config/data/keys/cookies_auth.aes256 ] && [ ! -f /mnt/config/data/writefreely.db ]; then
   /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini --init-db
   if [ -f /mnt/config/data/writefreely.db ]; then
-    # TODO: So we can manually do schema migration when new versions come out...
     /bin/echo "${WRITEFREELY_VERSION}" | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/data/version
   elif [ -f /mnt/config/data/version ]; then
     /bin/rm /mnt/config/data/version
+  fi
+fi
+
+# Migrate Database
+
+if [ -f /mnt/config/data/version ]; then
+  if [ "$(/bin/cat /mnt/config/data/version)" != "${WRITEFREELY_VERSION}" ]; then
+    echo "Database Version Mismatch - Starting Migration"
+    /command/s6-setuidgid guardian /bin/cp -n /mnt/config/data/writefreely.db "/mnt/config/home/writefreely.v$(/bin/cat /mnt/config/data/version)-v${WRITEFREELY_VERSION}.db" \
+     && /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini db migrate \
+     && /bin/echo "${WRITEFREELY_VERSION}" | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/data/version
   fi
 fi
 
