@@ -56,8 +56,8 @@ fi
 # Poor Man's DB Backup
 
 if [ -f /mnt/config/data/writefreely.db ]; then
-  /usr/bin/find /mnt/config/home/ -maxdepth 1 -type f -name 'writefreely-*.db' -print0 | /usr/bin/xargs -r0 /bin/ls -t | /usr/bin/tail -n +3 | /usr/bin/tr '\n' '\0' | /usr/bin/xargs -r0 /bin/rm
-  /command/s6-setuidgid guardian /bin/cp -n /mnt/config/data/writefreely.db "/mnt/config/home/writefreely-$(/bin/date +%Y%M%d%H%M).db"
+  /usr/bin/find /mnt/config/data/ -maxdepth 1 -type f -name 'writefreely.backup-*.db' -print0 | /usr/bin/xargs -r0 /bin/ls -t | /usr/bin/tail -n +3 | /usr/bin/tr '\n' '\0' | /usr/bin/xargs -r0 /bin/rm
+  /command/s6-setuidgid guardian /bin/cp -n /mnt/config/data/writefreely.db "/mnt/config/data/writefreely.backup-$(/bin/date +%Y%M%d%H%M).db"
 fi
 
 # Generate Database
@@ -76,7 +76,7 @@ fi
 if [ -f /mnt/config/data/version ]; then
   if [ "$(/bin/cat /mnt/config/data/version)" != "${WRITEFREELY_VERSION}" ]; then
     echo "Database Version Mismatch - Starting Migration"
-    /command/s6-setuidgid guardian /bin/cp -n /mnt/config/data/writefreely.db "/mnt/config/home/writefreely.v$(/bin/cat /mnt/config/data/version)-v${WRITEFREELY_VERSION}.db" \
+    /command/s6-setuidgid guardian /bin/cp -n /mnt/config/data/writefreely.db "/mnt/config/data/writefreely.migrate-v$(/bin/cat /mnt/config/data/version)-v${WRITEFREELY_VERSION}.db" \
      && /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini db migrate \
      && /bin/echo "${WRITEFREELY_VERSION}" | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/data/version
   fi
