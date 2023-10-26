@@ -6,8 +6,7 @@ FROM nephatrine/nxbuilder:golang AS builder1
 
 ARG WRITEFREELY_VERSION=v0.14.0
 RUN git -C /root clone -b "$WRITEFREELY_VERSION" --single-branch --depth=1 https://github.com/writefreely/writefreely.git
-
-RUN echo "====== COMPILE WRITEFREELY ======" \
+RUN echo "====== COMPILE WRITEFREELY BACKEND ======" \
  && cd /root/writefreely \
  && make -j$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 )) build \
  && cmd/writefreely/writefreely config generate
@@ -18,7 +17,7 @@ ARG WRITEFREELY_VERSION=v0.14.0
 COPY --from=builder1 /root/writefreely/ /root/writefreely/
 
 ARG NODE_OPTIONS=--openssl-legacy-provider
-RUN echo "====== COMPILE WRITEFREELY ======" \
+RUN echo "====== COMPILE WRITEFREELY FRONTEND ======" \
  && cd /root/writefreely \
  && sed -i 's/sudo //g' less/install-less.sh && less/install-less.sh \
  && make -j$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 )) ui
