@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Daniel Wolf <nephatrine@gmail.com>
+#
+# SPDX-License-Identifier: ISC
+
 FROM nephatrine/nxbuilder:golang AS builder1
 
 ARG WRITEFREELY_VERSION=v0.14.0
