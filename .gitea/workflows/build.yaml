@@ -10,8 +10,9 @@ on:
     - cron:  '20 19 * * 3'
 jobs:
   build_amd64:
-    if: gitea.repository_owner == 'NephNET' && (!contains(gitea.event.head_commit.message, '#noci') || gitea.event_name == 'schedule')
+    if: gitea.repository_owner == 'NephNET' && (!(startsWith(gitea.event.head_commit.message, 'chore') || startsWith(gitea.event.head_commit.message, 'docs')) || gitea.event_name == 'schedule')
     runs-on: nephnet-amd64
+    continue-on-error: true
     steps:
       - name: Checkout Repository
         uses: https://gitea.com/actions/checkout@v4
@@ -33,24 +34,44 @@ jobs:
           provenance: false
           pull: true
           push: true
-          tags: code.nephatrine.net/nephnet/write-freely:latest-amd64
-          cache-from: type=registry,ref=code.nephatrine.net/nephnet/write-freely-cache:latest-amd64
-          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/write-freely-cache:latest-amd64,mode=max
+          file: Dockerfile
+          tags: code.nephatrine.net/nephnet/amd64:write-freely
+          cache-from: type=registry,ref=code.nephatrine.net/nephnet/amd64-cache:write-freely
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/amd64-cache:write-freely,mode=max
       - name: Build & Push (Branch)
         if: gitea.ref_name != 'master' && gitea.ref_name != ''
         run: |
           export BRANCH=${GITHUB_REF##*/}
           export BRANCH=${BRANCH:-unknown}
-          docker buildx build --pull -t code.nephatrine.net/nephnet/write-freely:${BRANCH}-latest-amd64 --platform linux/amd64 ${{ gitea.workspace }}
+          docker buildx build --pull -t code.nephatrine.net/nephnet/write-freely:${BRANCH}-amd64 --platform linux/amd64 -f Dockerfile ${{ gitea.workspace }}
       - name: Notify Discord
         uses: https://github.com/sarisia/actions-status-discord@v1
         if: failure() || gitea.event_name != 'schedule'
         with:
-          title: "Container Build (X86_64)"
+          title: "Container Build (X86_64; 0.15.0)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+  push_amd64:
+    if: gitea.ref_name == 'master' || gitea.ref_name == ''
+    needs: [build_amd64]
+    runs-on: nephnet-amd64
+    continue-on-error: true
+    steps:
+      - name: Docker Login
+        uses: https://github.com/docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Tag & Push
+        run: |
+          docker pull code.nephatrine.net/nephnet/amd64:write-freely --platform linux/amd64
+          docker tag code.nephatrine.net/nephnet/amd64:write-freely nephatrine/amd64:write-freely
+          docker rmi code.nephatrine.net/nephnet/amd64:write-freely
+          docker push nephatrine/amd64:write-freely
+          docker rmi nephatrine/amd64:write-freely
   build_i386:
-    if: gitea.repository_owner == 'NephNET' && (!contains(gitea.event.head_commit.message, '#noci') || gitea.event_name == 'schedule')
+    if: gitea.repository_owner == 'NephNET' && (!(startsWith(gitea.event.head_commit.message, 'chore') || startsWith(gitea.event.head_commit.message, 'docs')) || gitea.event_name == 'schedule')
     runs-on: nephnet-i386
+    continue-on-error: true
     steps:
       - name: Checkout Repository
         uses: https://gitea.com/actions/checkout@v4
@@ -72,24 +93,44 @@ jobs:
           provenance: false
           pull: true
           push: true
-          tags: code.nephatrine.net/nephnet/write-freely:latest-i386
-          cache-from: type=registry,ref=code.nephatrine.net/nephnet/write-freely-cache:latest-i386
-          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/write-freely-cache:latest-i386,mode=max
+          file: Dockerfile
+          tags: code.nephatrine.net/nephnet/i386:write-freely
+          cache-from: type=registry,ref=code.nephatrine.net/nephnet/i386-cache:write-freely
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/i386-cache:write-freely,mode=max
       - name: Build & Push (Branch)
         if: gitea.ref_name != 'master' && gitea.ref_name != ''
         run: |
           export BRANCH=${GITHUB_REF##*/}
           export BRANCH=${BRANCH:-unknown}
-          docker buildx build --pull -t code.nephatrine.net/nephnet/write-freely:${BRANCH}-latest-i386 --platform linux/386 ${{ gitea.workspace }}
+          docker buildx build --pull -t code.nephatrine.net/nephnet/write-freely:${BRANCH}-i386 --platform linux/386 -f Dockerfile ${{ gitea.workspace }}
       - name: Notify Discord
         uses: https://github.com/sarisia/actions-status-discord@v1
-        if: failure() || gitea.event_name != 'schedule'
+        if: failure()
         with:
-          title: "Container Build (I686)"
+          title: "Container Build (I686; 0.15.0)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+  push_i386:
+    if: gitea.ref_name == 'master' || gitea.ref_name == ''
+    needs: [build_i386]
+    runs-on: nephnet-amd64
+    continue-on-error: true
+    steps:
+      - name: Docker Login
+        uses: https://github.com/docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Tag & Push
+        run: |
+          docker pull code.nephatrine.net/nephnet/i386:write-freely --platform linux/386
+          docker tag code.nephatrine.net/nephnet/i386:write-freely nephatrine/ia32:write-freely
+          docker rmi code.nephatrine.net/nephnet/i386:write-freely
+          docker push nephatrine/ia32:write-freely
+          docker rmi nephatrine/ia32:write-freely
   build_arm64:
-    if: gitea.repository_owner == 'NephNET' && (!contains(gitea.event.head_commit.message, '#noci') || gitea.event_name == 'schedule')
+    if: gitea.repository_owner == 'NephNET' && (!(startsWith(gitea.event.head_commit.message, 'chore') || startsWith(gitea.event.head_commit.message, 'docs')) || gitea.event_name == 'schedule')
     runs-on: nephnet-arm64
+    continue-on-error: true
     steps:
       - name: Checkout Repository
         uses: https://gitea.com/actions/checkout@v4
@@ -111,24 +152,44 @@ jobs:
           provenance: false
           pull: true
           push: true
-          tags: code.nephatrine.net/nephnet/write-freely:latest-arm64
-          cache-from: type=registry,ref=code.nephatrine.net/nephnet/write-freely-cache:latest-arm64
-          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/write-freely-cache:latest-arm64,mode=max
+          file: Dockerfile
+          tags: code.nephatrine.net/nephnet/arm64:write-freely
+          cache-from: type=registry,ref=code.nephatrine.net/nephnet/arm64-cache:write-freely
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/arm64-cache:write-freely,mode=max
       - name: Build & Push (Branch)
         if: gitea.ref_name != 'master' && gitea.ref_name != ''
         run: |
           export BRANCH=${GITHUB_REF##*/}
           export BRANCH=${BRANCH:-unknown}
-          docker buildx build --pull -t code.nephatrine.net/nephnet/write-freely:${BRANCH}-latest-arm64 --platform linux/arm64/v8 ${{ gitea.workspace }}
+          docker buildx build --pull -t code.nephatrine.net/nephnet/write-freely:${BRANCH}-arm64 --platform linux/arm64/v8 -f Dockerfile ${{ gitea.workspace }}
       - name: Notify Discord
         uses: https://github.com/sarisia/actions-status-discord@v1
-        if: failure() || gitea.event_name != 'schedule'
+        if: failure()
         with:
-          title: "Container Build (AARCH64)"
+          title: "Container Build (AARCH64; 0.15.0)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+  push_arm64:
+    if: gitea.ref_name == 'master' || gitea.ref_name == ''
+    needs: [build_arm64]
+    runs-on: nephnet-amd64
+    continue-on-error: true
+    steps:
+      - name: Docker Login
+        uses: https://github.com/docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Tag & Push
+        run: |
+          docker pull code.nephatrine.net/nephnet/arm64:write-freely --platform linux/arm64/v8
+          docker tag code.nephatrine.net/nephnet/arm64:write-freely nephatrine/arm64:write-freely
+          docker rmi code.nephatrine.net/nephnet/arm64:write-freely
+          docker push nephatrine/arm64:write-freely
+          docker rmi nephatrine/arm64:write-freely
   build_armhf:
-    if: gitea.repository_owner == 'NephNET' && (!contains(gitea.event.head_commit.message, '#noci') || gitea.event_name == 'schedule')
+    if: gitea.repository_owner == 'NephNET' && (!(startsWith(gitea.event.head_commit.message, 'chore') || startsWith(gitea.event.head_commit.message, 'docs')) || gitea.event_name == 'schedule')
     runs-on: nephnet-armhf
+    continue-on-error: true
     steps:
       - name: Checkout Repository
         uses: https://gitea.com/actions/checkout@v4
@@ -150,55 +211,101 @@ jobs:
           provenance: false
           pull: true
           push: true
-          tags: code.nephatrine.net/nephnet/write-freely:latest-armv7
-          cache-from: type=registry,ref=code.nephatrine.net/nephnet/write-freely-cache:latest-armv7
-          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/write-freely-cache:latest-armv7,mode=max
+          file: Dockerfile
+          tags: code.nephatrine.net/nephnet/armv7:write-freely
+          cache-from: type=registry,ref=code.nephatrine.net/nephnet/armv7-cache:write-freely
+          cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephnet/armv7-cache:write-freely,mode=max
       - name: Build & Push (Branch)
         if: gitea.ref_name != 'master' && gitea.ref_name != ''
         run: |
           export BRANCH=${GITHUB_REF##*/}
           export BRANCH=${BRANCH:-unknown}
-          docker buildx build --pull -t code.nephatrine.net/nephnet/write-freely:${BRANCH}-latest-armv7 --platform linux/arm/v7 ${{ gitea.workspace }}
+          docker buildx build --pull -t code.nephatrine.net/nephnet/write-freely:${BRANCH}-armv7 --platform linux/arm/v7 -f Dockerfile ${{ gitea.workspace }}
       - name: Notify Discord
         uses: https://github.com/sarisia/actions-status-discord@v1
-        if: failure() || gitea.event_name != 'schedule'
+        if: failure()
         with:
-          title: "Container Build (ARMV7L)"
+          title: "Container Build (ARMV7L; 0.15.0)"
           webhook: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
-  build_manifest:
+  push_armhf:
+    if: gitea.ref_name == 'master' || gitea.ref_name == ''
+    needs: [build_armhf]
+    runs-on: nephnet-amd64
+    continue-on-error: true
+    steps:
+      - name: Docker Login
+        uses: https://github.com/docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Tag & Push
+        run: |
+          docker pull code.nephatrine.net/nephnet/armv7:write-freely --platform linux/arm/v7
+          docker tag code.nephatrine.net/nephnet/armv7:write-freely nephatrine/armv7:write-freely
+          docker rmi code.nephatrine.net/nephnet/armv7:write-freely
+          docker push nephatrine/armv7:write-freely
+          docker rmi nephatrine/armv7:write-freely
+  build:
     if: gitea.ref_name == 'master' || gitea.ref_name == ''
     needs: [build_amd64, build_i386, build_arm64, build_armhf]
-    runs-on: nephnet-amd64
+    runs-on: nephnet
+    continue-on-error: true
     steps:
-      - name: Check Base Image
-        if: gitea.event_name == 'schedule'
-        uses: https://github.com/lucacome/docker-image-update-checker@v1
-        id: checkbase
-        with:
-          base-image: nephatrine/alpine-s6:latest
-          image: nephatrine/write-freely:latest
-          platforms: linux/amd64
       - name: Docker Login
         uses: https://github.com/docker/login-action@v3
         with:
           registry: code.nephatrine.net
           username: ${{ gitea.actor }}
           password: ${{ secrets.PACKAGER_TOKEN }}
+      - name: Docker Manifest
+        run: |
+          docker manifest create code.nephatrine.net/nephnet/write-freely:0.15.0 --amend code.nephatrine.net/nephnet/amd64:write-freely --amend code.nephatrine.net/nephnet/i386:write-freely --amend code.nephatrine.net/nephnet/arm64:write-freely --amend code.nephatrine.net/nephnet/armv7:write-freely
+          docker manifest create code.nephatrine.net/nephnet/write-freely:0.15 --amend code.nephatrine.net/nephnet/amd64:write-freely --amend code.nephatrine.net/nephnet/i386:write-freely --amend code.nephatrine.net/nephnet/arm64:write-freely --amend code.nephatrine.net/nephnet/armv7:write-freely
+          docker manifest create code.nephatrine.net/nephnet/write-freely:0 --amend code.nephatrine.net/nephnet/amd64:write-freely --amend code.nephatrine.net/nephnet/i386:write-freely --amend code.nephatrine.net/nephnet/arm64:write-freely --amend code.nephatrine.net/nephnet/armv7:write-freely
+          docker manifest create code.nephatrine.net/nephnet/write-freely:latest --amend code.nephatrine.net/nephnet/amd64:write-freely --amend code.nephatrine.net/nephnet/i386:write-freely --amend code.nephatrine.net/nephnet/arm64:write-freely --amend code.nephatrine.net/nephnet/armv7:write-freely
+          docker manifest push --purge code.nephatrine.net/nephnet/write-freely:0.15.0
+          docker manifest push --purge code.nephatrine.net/nephnet/write-freely:0.15
+          docker manifest push --purge code.nephatrine.net/nephnet/write-freely:0
+          docker manifest push --purge code.nephatrine.net/nephnet/write-freely:latest
+      - name: Notify Discord
+        uses: https://github.com/sarisia/actions-status-discord@v1
+        if: failure()
+        with:
+          title: "Container Publish (0.15.0)"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_PACKAGE }}
+  push:
+    needs: [push_amd64, push_i386, push_arm64, push_armhf]
+    runs-on: nephnet
+    continue-on-error: true
+    steps:
       - name: Docker Login
         uses: https://github.com/docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
       - name: Docker Manifest
-        run: docker buildx imagetools create -t code.nephatrine.net/nephnet/write-freely:latest -t nephatrine/write-freely:latest -t nephatrine/write-freely:0.15.0 -t nephatrine/write-freely:0.15 -t nephatrine/write-freely:0 code.nephatrine.net/nephnet/write-freely:latest-amd64 code.nephatrine.net/nephnet/write-freely:latest-i386 code.nephatrine.net/nephnet/write-freely:latest-arm64 code.nephatrine.net/nephnet/write-freely:latest-armv7
+        run: |
+          docker manifest create nephatrine/write-freely:0.15.0 --amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely
+          docker manifest create nephatrine/write-freely:0.15 --amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely
+          docker manifest create nephatrine/write-freely:0 --amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely
+          docker manifest create nephatrine/write-freely:latest --amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely
+          docker manifest push --purge nephatrine/write-freely:0.15.0
+          docker manifest push --purge nephatrine/write-freely:0.15
+          docker manifest push --purge nephatrine/write-freely:0
+          docker manifest push --purge nephatrine/write-freely:latest
       - name: Notify Discord
-        if: gitea.event_name != 'schedule' || steps.checkbase.outputs.needs-updating == 'true'
+        if: gitea.event_name != 'schedule'
         uses: https://github.com/sarisia/actions-status-discord@v1
         with:
-          title: "DockerHub: write-freely"
+          title: "DockerHub: write-freely (0.15.0)"
           description: "The container image was pushed to [DockerHub](https://hub.docker.com/repository/docker/nephatrine/write-freely/general).\nPull `nephatrine/write-freely:latest` for the newest image."
           nodetail: true
           webhook: ${{ secrets.DISCORD_WEBHOOK_PACKAGE }}
+  update_readme:
+    needs: [push]
+    runs-on: nephnet
+    continue-on-error: true
+    steps:
       - name: Checkout Repository
         uses: https://gitea.com/actions/checkout@v4
       - name: Docker Describe
@@ -207,9 +314,3 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
           repository: nephatrine/write-freely
-      - name: Notify Discord
-        uses: https://github.com/sarisia/actions-status-discord@v1
-        if: failure()
-        with:
-          title: "Container Publish"
-          webhook: ${{ secrets.DISCORD_WEBHOOK_PACKAGE }}
