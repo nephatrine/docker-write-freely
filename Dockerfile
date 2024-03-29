@@ -7,6 +7,8 @@ FROM code.nephatrine.net/nephnet/nxb-alpine:latest-golang AS builder
 ARG WRITEFREELY_VERSION=v0.15.0
 RUN git -C /root clone -b "$WRITEFREELY_VERSION" --single-branch --depth=1 https://github.com/writefreely/writefreely.git \
  && sed -i 's/sudo //g' /root/writefreely/less/install-less.sh
+
+ARG NODE_OPTIONS=--openssl-legacy-provider
 WORKDIR /root/writefreely
 RUN make -j$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 )) build \
  && cmd/writefreely/writefreely config generate \
