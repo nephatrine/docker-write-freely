@@ -259,6 +259,10 @@ jobs:
           password: ${{ secrets.PACKAGER_TOKEN }}
       - name: Docker Manifest
         run: |
+          docker manifest rm code.nephatrine.net/nephnet/write-freely:0.15.0 || true
+          docker manifest rm code.nephatrine.net/nephnet/write-freely:0.15 || true
+          docker manifest rm code.nephatrine.net/nephnet/write-freely:0 || true
+          docker manifest rm code.nephatrine.net/nephnet/write-freely:latest || true
           docker manifest create code.nephatrine.net/nephnet/write-freely:0.15.0 --amend code.nephatrine.net/nephnet/amd64:write-freely --amend code.nephatrine.net/nephnet/i386:write-freely --amend code.nephatrine.net/nephnet/arm64:write-freely --amend code.nephatrine.net/nephnet/armv7:write-freely
           docker manifest create code.nephatrine.net/nephnet/write-freely:0.15 --amend code.nephatrine.net/nephnet/amd64:write-freely --amend code.nephatrine.net/nephnet/i386:write-freely --amend code.nephatrine.net/nephnet/arm64:write-freely --amend code.nephatrine.net/nephnet/armv7:write-freely
           docker manifest create code.nephatrine.net/nephnet/write-freely:0 --amend code.nephatrine.net/nephnet/amd64:write-freely --amend code.nephatrine.net/nephnet/i386:write-freely --amend code.nephatrine.net/nephnet/arm64:write-freely --amend code.nephatrine.net/nephnet/armv7:write-freely
@@ -285,6 +289,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
       - name: Docker Manifest
         run: |
+          docker manifest rm nephatrine/write-freely:0.15.0 || true
+          docker manifest rm nephatrine/write-freely:0.15 || true
+          docker manifest rm nephatrine/write-freely:0 || true
+          docker manifest rm nephatrine/write-freely:latest || true
           docker manifest create nephatrine/write-freely:0.15.0 --amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely
           docker manifest create nephatrine/write-freely:0.15 --amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely
           docker manifest create nephatrine/write-freely:0 --amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely
