@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: 2023 - 2024 Daniel Wolf <nephatrine@gmail.com>
+# SPDX-FileCopyrightText: 2023 - 2025 Daniel Wolf <nephatrine@gmail.com>
 #
 # SPDX-License-Identifier: ISC
 
 FROM code.nephatrine.net/nephnet/nxb-alpine:golang AS builder
 
-ARG WRITEFREELY_VERSION=v0.15.0
+ARG WRITEFREELY_VERSION=v0.15.1
 RUN git -C /root clone -b "$WRITEFREELY_VERSION" --single-branch --depth=1 https://github.com/writefreely/writefreely.git \
  && sed -i 's/sudo //g' /root/writefreely/less/install-less.sh
 
