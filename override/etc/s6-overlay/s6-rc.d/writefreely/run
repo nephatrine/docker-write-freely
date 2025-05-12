@@ -1,13 +1,12 @@
 #!/command/with-contenv /bin/sh
-# SPDX-FileCopyrightText: 2023 - 2024 Daniel Wolf <nephatrine@gmail.com>
-#
+# SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
 # SPDX-License-Identifier: ISC
+
+# shellcheck shell=sh
 
 export HOME=/mnt/config/home
 
 cd /mnt/config/home || exit 1
-
-# Configure Assets
 
 if [ ! -d /var/www/writefreely-live ]; then
   /bin/mkdir -p /var/www/writefreely-live
@@ -29,8 +28,6 @@ if [ -d /var/www/writefreely-live ]; then
   fi
 fi
 
-# Create Config
-
 if [ ! -d /mnt/config/etc ]; then
   /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/etc
 fi
@@ -41,8 +38,6 @@ if [ -d /mnt/config/etc ]; then
   /command/s6-setuidgid guardian /bin/cp /etc/writefreely.ini.sample /mnt/config/etc/writefreely.ini.sample
 fi
 
-# Generate Keys
-
 if [ ! -d /mnt/config/data/keys ]; then
   /command/s6-setuidgid guardian /bin/mkdir -p /mnt/config/data/keys
 fi
@@ -50,14 +45,10 @@ if [ ! -f /mnt/config/data/keys/cookies_auth.aes256 ] && [ -d /mnt/config/data/k
   /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini --gen-keys
 fi
 
-# Poor Man's DB Backup
-
 if [ -f /mnt/config/data/writefreely.db ]; then
   /usr/bin/find /mnt/config/data/ -maxdepth 1 -type f -name 'writefreely.backup-*.db' -print0 | /usr/bin/xargs -r0 /bin/ls -t | /usr/bin/tail -n +3 | /usr/bin/tr '\n' '\0' | /usr/bin/xargs -r0 /bin/rm
   /command/s6-setuidgid guardian /bin/cp -n /mnt/config/data/writefreely.db "/mnt/config/data/writefreely.backup-$(/bin/date +%Y%M%d%H%M).db"
 fi
-
-# Generate Database
 
 if [ -f /mnt/config/data/keys/cookies_auth.aes256 ] && [ ! -f /mnt/config/data/writefreely.db ]; then
   /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini --init-db
@@ -68,8 +59,6 @@ if [ -f /mnt/config/data/keys/cookies_auth.aes256 ] && [ ! -f /mnt/config/data/w
   fi
 fi
 
-# Migrate Database
-
 if [ -f /mnt/config/data/version ]; then
   if [ "$(/bin/cat /mnt/config/data/version)" != "${WRITEFREELY_VERSION}" ]; then
     echo "Database Version Mismatch - Starting Migration"
@@ -78,8 +67,6 @@ if [ -f /mnt/config/data/version ]; then
      && /bin/echo "${WRITEFREELY_VERSION}" | /command/s6-setuidgid guardian /usr/bin/tee /mnt/config/data/version
   fi
 fi
-
-# Start Daemon
 
 if [ -f /mnt/config/data/writefreely.db ]; then
   exec /command/s6-setuidgid guardian /usr/bin/writefreely -c /mnt/config/etc/writefreely.ini

@@ -1,28 +1,65 @@
 <!--
-SPDX-FileCopyrightText: 2023 - 2025 Daniel Wolf <nephatrine@gmail.com>
-
+SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
 SPDX-License-Identifier: ISC
 -->
 
-[Git](https://code.nephatrine.net/NephNET/docker-write-freely/src/branch/master) |
-[Docker](https://hub.docker.com/r/nephatrine/write-freely/) |
-[unRAID](https://code.nephatrine.net/NephNET/unraid-containers)
-
 # WriteFreely Blog/Notes Server
 
-This docker image contains a WriteFreely server to self-host your own blog(s).
+[![NephCode](https://img.shields.io/static/v1?label=Git&message=NephCode&color=teal)](https://code.nephatrine.net/NephNET/docker-write-freely)
+[![GitHub](https://img.shields.io/static/v1?label=Git&message=GitHub&color=teal)](https://github.com/nephatrine/docker-write-freely)
+[![Registry](https://img.shields.io/static/v1?label=OCI&message=NephCode&color=blue)](https://code.nephatrine.net/NephNET/-/packages/container/write-freely/latest)
+[![DockerHub](https://img.shields.io/static/v1?label=OCI&message=DockerHub&color=blue)](https://hub.docker.com/repository/docker/nephatrine/write-freely/general)
+[![unRAID](https://img.shields.io/static/v1?label=unRAID&message=template&color=orange)](https://code.nephatrine.net/NephNET/unraid-containers)
 
-The `latest` tag points to version `0.15.1` and this is the only image actively
-being updated. There are tags for older versions, but these may no longer be
-using the latest Alpine version and packages.
+This is an Alpine-based container hosting the WriteFreely blogging web service.
 
-To secure this service, we suggest a separate reverse proxy server, such as an
-[NGINX](https://nginx.com/) container. Alternatively, WriteFreely does include
-built-in options for using your own SSL certificates or using LetsEncrypt.
+To secure this service, we suggest a separate reverse proxy server, such as
+[nephatrine/nginx-ssl](https://hub.docker.com/repository/docker/nephatrine/nginx-ssl/general).
 
-## Docker-Compose
+To support blog comments, we recommend integrating a comment service such as
+[nephatrine/remark42-ce](https://hub.docker.com/repository/docker/nephatrine/remark42-ce/general).
 
-This is an example docker-compose file:
+## Supported Tags
+
+- `write-freely:0.15.1`: WriteFreely 0.15.1
+
+## Software
+
+- [Alpine Linux](https://alpinelinux.org/)
+- [Skarnet S6](https://skarnet.org/software/s6/)
+- [s6-overlay](https://github.com/just-containers/s6-overlay)
+- [WriteFreely](https://writefreely.org/)
+
+## Configuration
+
+You will likely want to create an admin account after installation. You can do
+that by using the container's terminal to run the following command:
+
+```bash
+writefreely -c /mnt/config/etc/writefreely.ini --create-admin [username]:[password]
+```
+
+There are some important configuration files you need to be aware of and
+potentially customize.
+
+- `/mnt/config/etc/writefreely.ini`
+
+Modifications to these files will require a service restart to pull in the
+changes made.
+
+You can place any additional web files to be served here.
+
+- `/mnt/config/www/writefreely/*`
+
+### Container Variables
+
+- `TZ`: Time Zone (i.e. `America/New_York`)
+- `PUID`: Mounted File Owner User ID
+- `PGID`: Mounted File Owner Group ID
+
+## Testing
+
+### docker-compose
 
 ```yaml
 services:
@@ -40,24 +77,8 @@ services:
       - /mnt/containers/write-freely:/mnt/config
 ```
 
-## Admin Creation
-
-You will likely want to create an admin account after installation. You can do
-that by using the container's terminal to run the following command:
+### docker run
 
 ```bash
-writefreely -c /mnt/config/etc/writefreely.ini --create-admin [username]:[password]
+docker run --rm -ti code.nephatrine.net/nephnet/write-freely:latest /bin/bash
 ```
-
-This will create your initial admin user account.
-
-## Server Configuration
-
-There are some important configuration files you need to be aware of and
-potentially customize.
-
-- `/mnt/config/etc/writefreely.ini`
-- `/mnt/config/www/writefreely/*`
-
-Modifications to these files will require a service restart to pull in the
-changes made.

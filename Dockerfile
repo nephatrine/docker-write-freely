@@ -1,6 +1,7 @@
-# SPDX-FileCopyrightText: 2023 - 2025 Daniel Wolf <nephatrine@gmail.com>
-#
+# SPDX-FileCopyrightText: 2023-2025 Daniel Wolf <nephatrine@gmail.com>
 # SPDX-License-Identifier: ISC
+
+# hadolint global ignore=DL3007,DL3018
 
 FROM code.nephatrine.net/nephnet/nxb-golang:latest AS builder
 
@@ -15,15 +16,10 @@ RUN make -j$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 )) build \
  && less/install-less.sh \
  && make -j$(( $(getconf _NPROCESSORS_ONLN) / 2 + 1 )) ui
 
-# ------------------------------
-
-# hadolint ignore=DL3007
 FROM code.nephatrine.net/nephnet/alpine-s6:latest
 LABEL maintainer="Daniel Wolf <nephatrine@gmail.com>"
 
-# hadolint ignore=DL3018
-RUN apk add --no-cache sqlite \
- && rm -rf /tmp/* /var/tmp/*
+RUN apk add --no-cache sqlite && rm -rf /tmp/* /var/tmp/*
 
 ENV WRITEFREELY_VERSION=1500
 COPY --from=builder /root/writefreely/cmd/writefreely/writefreely /usr/bin/
