@@ -29,6 +29,7 @@ To support blog comments, we recommend integrating a comment service such as
 - [Skarnet S6](https://skarnet.org/software/s6/)
 - [s6-overlay](https://github.com/just-containers/s6-overlay)
 - [WriteFreely](https://writefreely.org/)
+- [SQLite](https://sqlite.org/)
 
 ## Configuration
 
