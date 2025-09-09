@@ -61,7 +61,7 @@ jobs:
           pull: true
           push: true
           file: Dockerfile
-          tags: code.nephatrine.net/nephnet/write-freely:0.15.1-${{matrix.nephhub}}
+          tags: code.nephatrine.net/nephnet/write-freely:0.16.0-${{matrix.nephhub}}
           cache-from: type=registry,ref=code.nephatrine.net/nephhub/${{matrix.nephhub}}-cache:write-freely
           cache-to: type=registry,image-manifest=true,oci-mediatypes=true,ref=code.nephatrine.net/nephhub/${{matrix.nephhub}}-cache:write-freely,mode=max
       - name: Notify Discord
@@ -108,9 +108,9 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
       - name: Tag & Push
         run: |
-          docker pull code.nephatrine.net/nephnet/write-freely:0.15.1-${{matrix.nephhub}} --platform linux/${{matrix.platform}}
-          docker tag code.nephatrine.net/nephnet/write-freely:0.15.1-${{matrix.nephhub}} nephatrine/${{matrix.dockerhub}}:write-freely
-          docker rmi code.nephatrine.net/nephnet/write-freely:0.15.1-${{matrix.nephhub}}
+          docker pull code.nephatrine.net/nephnet/write-freely:0.16.0-${{matrix.nephhub}} --platform linux/${{matrix.platform}}
+          docker tag code.nephatrine.net/nephnet/write-freely:0.16.0-${{matrix.nephhub}} nephatrine/${{matrix.dockerhub}}:write-freely
+          docker rmi code.nephatrine.net/nephnet/write-freely:0.16.0-${{matrix.nephhub}}
           docker push nephatrine/${{matrix.dockerhub}}:write-freely
           docker rmi nephatrine/${{matrix.dockerhub}}:write-freely
       - name: Clean Up
@@ -149,16 +149,16 @@ jobs:
         continue-on-error: true
         id: manifest
         run: |
-          export IMAGELIST="--amend code.nephatrine.net/nephnet/write-freely:0.15.1-amd64 --amend code.nephatrine.net/nephnet/write-freely:0.15.1-ia32 --amend code.nephatrine.net/nephnet/write-freely:0.15.1-arm64 --amend code.nephatrine.net/nephnet/write-freely:0.15.1-arm32"
-          for manifestName in 0.15.1 0.15 0 latest; do docker manifest rm code.nephatrine.net/nephnet/write-freely:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/write-freely:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/write-freely:${manifestName}; done
+          export IMAGELIST="--amend code.nephatrine.net/nephnet/write-freely:0.16.0-amd64 --amend code.nephatrine.net/nephnet/write-freely:0.16.0-ia32 --amend code.nephatrine.net/nephnet/write-freely:0.16.0-arm64 --amend code.nephatrine.net/nephnet/write-freely:0.16.0-arm32"
+          for manifestName in 0.16.0 0.16 0 latest; do docker manifest rm code.nephatrine.net/nephnet/write-freely:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/write-freely:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/write-freely:${manifestName}; done
       - name: Wait to Retry
         if: steps.manifest.outcome != 'success'
         run: sleep 60
       - name: Retry Docker Manifest
         if: steps.manifest.outcome != 'success'
         run: |
-          export IMAGELIST="--amend code.nephatrine.net/nephnet/write-freely:0.15.1-amd64 --amend code.nephatrine.net/nephnet/write-freely:0.15.1-ia32 --amend code.nephatrine.net/nephnet/write-freely:0.15.1-arm64 --amend code.nephatrine.net/nephnet/write-freely:0.15.1-arm32"
-          for manifestName in 0.15.1 0.15 0 latest; do docker manifest rm code.nephatrine.net/nephnet/write-freely:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/write-freely:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/write-freely:${manifestName}; done
+          export IMAGELIST="--amend code.nephatrine.net/nephnet/write-freely:0.16.0-amd64 --amend code.nephatrine.net/nephnet/write-freely:0.16.0-ia32 --amend code.nephatrine.net/nephnet/write-freely:0.16.0-arm64 --amend code.nephatrine.net/nephnet/write-freely:0.16.0-arm32"
+          for manifestName in 0.16.0 0.16 0 latest; do docker manifest rm code.nephatrine.net/nephnet/write-freely:${manifestName} || true; docker manifest create code.nephatrine.net/nephnet/write-freely:${manifestName} ${IMAGELIST}; docker manifest push --purge code.nephatrine.net/nephnet/write-freely:${manifestName}; done
       - name: Notify Discord
         uses: https://code.nephatrine.net/NephHub/actions-status-discord@v1
         if: failure()
@@ -191,7 +191,7 @@ jobs:
         id: manifest
         run: |
           export IMAGELIST="--amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely"
-          for manifestName in 0.15.1 0.15 0 latest; do docker manifest rm nephatrine/write-freely:${manifestName} || true; docker manifest create nephatrine/write-freely:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/write-freely:${manifestName}; done
+          for manifestName in 0.16.0 0.16 0 latest; do docker manifest rm nephatrine/write-freely:${manifestName} || true; docker manifest create nephatrine/write-freely:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/write-freely:${manifestName}; done
       - name: Wait to Retry
         if: steps.manifest.outcome != 'success'
         run: sleep 60
@@ -199,7 +199,7 @@ jobs:
         if: steps.manifest.outcome != 'success'
         run: |
           export IMAGELIST="--amend nephatrine/amd64:write-freely --amend nephatrine/ia32:write-freely --amend nephatrine/arm64:write-freely --amend nephatrine/armv7:write-freely"
-          for manifestName in 0.15.1 0.15 0 latest; do docker manifest rm nephatrine/write-freely:${manifestName} || true; docker manifest create nephatrine/write-freely:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/write-freely:${manifestName}; done
+          for manifestName in 0.16.0 0.16 0 latest; do docker manifest rm nephatrine/write-freely:${manifestName} || true; docker manifest create nephatrine/write-freely:${manifestName} ${IMAGELIST}; docker manifest push --purge nephatrine/write-freely:${manifestName}; done
       - name: Notify Discord
         uses: https://code.nephatrine.net/NephHub/actions-status-discord@v1
         if: failure()

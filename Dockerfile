@@ -6,7 +6,7 @@
 # hadolint ignore=DL3007
 FROM code.nephatrine.net/nephnet/nxb-golang:latest AS builder
 
-ARG WRITEFREELY_VERSION=v0.15.1
+ARG WRITEFREELY_VERSION=v0.16.0
 RUN git -C /root clone -b "$WRITEFREELY_VERSION" --single-branch --depth=1 https://github.com/writefreely/writefreely.git \
  && sed -i 's/sudo //g' /root/writefreely/less/install-less.sh
 
@@ -23,7 +23,7 @@ LABEL maintainer="Daniel Wolf <nephatrine@gmail.com>"
 
 RUN apk add --no-cache sqlite && rm -rf /tmp/* /var/tmp/*
 
-ENV WRITEFREELY_VERSION=1500
+ENV WRITEFREELY_VERSION=1600
 COPY --from=builder /root/writefreely/cmd/writefreely/writefreely /usr/bin/
 COPY --from=builder /root/writefreely/config.ini /etc/writefreely.ini.sample
 COPY --from=builder /root/writefreely/static/ /var/www/writefreely/static/

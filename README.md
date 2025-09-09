@@ -21,7 +21,7 @@ To support blog comments, we recommend integrating a comment service such as
 
 ## Supported Tags
 
-- `write-freely:0.15.1`: WriteFreely 0.15.1
+- `write-freely:0.16.0`: WriteFreely 0.16.0
 
 ## Software
 
